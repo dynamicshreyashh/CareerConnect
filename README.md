@@ -1,42 +1,129 @@
-CareerConnect - Job Portal
-A MERN stack job portal connecting students with recruiters. Students can apply for jobs and track application status in real-time.
+🚀 CareerConnect
+Intelligent Job Portal for Students & Recruiters
+📋 Overview
+CareerConnect is a full-stack MERN application that bridges the gap between students seeking opportunities and recruiters looking for talent. With real-time status tracking and instant notifications, it transforms the traditional job application process.
 
-🚀 Features
-Student Side: Browse jobs, apply, track application status
+✨ Key Features
+👨‍🎓 For Students
+Browse & Apply - Explore curated job listings
 
-Recruiter Side: Post jobs, view applicants, update status
+Track Applications - Real-time status dashboard
 
-Real-time Updates: Students get notified when application status changes
+Get Notified - Instant updates on application changes
 
-Secure Authentication: JWT-based login system
+Smart Dashboard - All your applications in one place
 
-🛠️ Tech Stack
-Frontend: React.js, Redux, Tailwind CSS
+👔 For Recruiters
+Post Jobs - Create detailed opportunity listings
 
-Backend: Node.js, Express.js, MongoDB
+Manage Applicants - Review, shortlist, or reject candidates
 
-Tools: Git, GitHub, Postman
+Analytics - Track application metrics
 
-📦 Setup
-Clone repo: git clone https://github.com/dynamicshreyashh/CareerConnect.git
+Streamlined Workflow - Efficient candidate management
 
-Backend: cd backend && npm install
+⚡ Core Highlights
+🔔 Real-time Notifications - No more waiting
 
-Frontend: cd frontend && npm install
+📱 Mobile Responsive - Access anywhere, anytime
 
-Run: npm start in both folders
-<img width="1491" height="872" alt="Screenshot 2025-12-02 160619" src="https://github.com/user-attachments/assets/aa6e29a9-4e7d-46f6-b68e-240e6f1d6cf8" />
+🔒 Secure Authentication - JWT protected endpoints
 
-📁 Project Structure
+🎨 Modern UI - Clean, intuitive interface
+
+🛠️ Technology Stack
+Layer	Technology
+Frontend	React.js • Redux • Tailwind CSS • Axios
+Backend	Node.js • Express.js • MongoDB • Mongoose
+Authentication	JWT • Bcrypt • Cookie-based sessions
+Tools	Git • GitHub • Postman • VS Code
+🚦 Quick Start
+1. Clone & Navigate
+bash
+git clone https://github.com/dynamicshreyashh/CareerConnect.git
+cd CareerConnect
+2. Backend Setup
+bash
+cd backend
+npm install
+# Add your .env file with MongoDB URI & JWT secret
+npm start
+3. Frontend Setup
+bash
+cd frontend
+npm install
+npm start
+4. Access
+🌐 Frontend: http://localhost:3000
+
+⚙️ Backend API: http://localhost:5000
+
+🏗️ Project Architecture
 text
 CareerConnect/
-├── frontend/     # React application
-├── backend/      # Node.js API
-└── README.md
-🔧 Environment
-Create .env files:
+├── 📁 frontend/                 # React Application
+│   ├── src/
+│   │   ├── components/         # Reusable UI Components
+│   │   ├── pages/             # Student/Recruiter Views
+│   │   ├── services/          # API Communication
+│   │   └── store/             # Redux State Management
+│   └── package.json
+│
+├── 📁 backend/                  # Node.js API Server
+│   ├── src/
+│   │   ├── controllers/       # Business Logic
+│   │   ├── models/            # MongoDB Schemas
+│   │   ├── routes/            # API Endpoints
+│   │   └── middleware/        # Auth & Validation
+│   └── package.json
+│
+└── 📄 README.md                # You are here!
+📸 Application Preview
+<div align="center">
+https://github.com/user-attachments/assets/aa6e29a9-4e7d-46f6-b68e-240e6f1d6cf8
 
-backend/.env: Add MongoDB URI, JWT secret
+Student Dashboard - Track all your applications in real-time
 
-frontend/.env: Add API URL: REACT_APP_API_URL=http://localhost:5000
+</div>
+⚙️ Environment Configuration
+Backend (.env)
+env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secure_jwt_secret
 
+CLIENT_URL=http://localhost:3000
+Frontend (.env)
+env
+REACT_APP_API_URL=http://localhost:5000
+
+🔗 API Endpoints
+Method	Endpoint	Description	Access
+POST	/api/auth/register	User Registration	Public
+POST	/api/auth/login	User Login	Public
+GET	/api/jobs	Get All Jobs	Both
+POST	/api/jobs	Create New Job	Recruiter
+POST	/api/applications	Apply for Job	Student
+PUT	/api/applications/:id	Update Status	Recruiter
+
+🤝 Contributing
+We welcome contributions! Here's how:<img width="1491" height="872" alt="Screenshot 2025-12-02 160619" src="https://github.com/user-attachments/assets/b9c8fb72-ea58-4255-a199-ff4695fe8945" />
+
+
+Fork the repository
+
+Create a feature branch: git checkout -b feature/amazing-feature
+
+Commit changes: git commit -m 'Add amazing feature'
+
+Push to branch: git push origin feature/amazing-feature
+
+Open a Pull Request
+
+📄 License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+👨‍💻 Author
+Shreyash
+💼 GitHub Profile
+🌐 Portfolio
