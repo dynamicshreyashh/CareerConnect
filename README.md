@@ -1,9 +1,11 @@
 🚀 CareerConnect
 Intelligent Job Portal for Students & Recruiters
+
 📋 Overview
 CareerConnect is a full-stack MERN application that bridges the gap between students seeking opportunities and recruiters looking for talent. With real-time status tracking and instant notifications, it transforms the traditional job application process.
 
 ✨ Key Features
+
 👨‍🎓 For Students
 Browse & Apply - Explore curated job listings
 
@@ -37,54 +39,30 @@ Frontend	React.js • Redux • Tailwind CSS • Axios
 Backend	Node.js • Express.js • MongoDB • Mongoose
 Authentication	JWT • Bcrypt • Cookie-based sessions
 Tools	Git • GitHub • Postman • VS Code
+
 🚦 Quick Start
 1. Clone & Navigate
 bash
 git clone https://github.com/dynamicshreyashh/CareerConnect.git
 cd CareerConnect
-2. Backend Setup
+
+3. Backend Setup
 bash
 cd backend
 npm install
 # Add your .env file with MongoDB URI & JWT secret
 npm start
+
 3. Frontend Setup
 bash
 cd frontend
 npm install
 npm start
-4. Access
+
+5. Access
 🌐 Frontend: http://localhost:3000
 
 ⚙️ Backend API: http://localhost:5000
-
-🏗️ Project Architecture
-text
-CareerConnect/
-├── 📁 frontend/                 # React Application
-│   ├── src/
-│   │   ├── components/         # Reusable UI Components
-│   │   ├── pages/             # Student/Recruiter Views
-│   │   ├── services/          # API Communication
-│   │   └── store/             # Redux State Management
-│   └── package.json
-│
-├── 📁 backend/                  # Node.js API Server
-│   ├── src/
-│   │   ├── controllers/       # Business Logic
-│   │   ├── models/            # MongoDB Schemas
-│   │   ├── routes/            # API Endpoints
-│   │   └── middleware/        # Auth & Validation
-│   └── package.json
-│
-└── 📄 README.md                # You are here!
-📸 Application Preview
-<div align="center">
-https://github.com/user-attachments/assets/aa6e29a9-4e7d-46f6-b68e-240e6f1d6cf8
-
-Student Dashboard - Track all your applications in real-time
-
-</div>
 ⚙️ Environment Configuration
 Backend (.env)
 env
