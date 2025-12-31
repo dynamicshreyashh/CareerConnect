@@ -2,12 +2,12 @@ CareerConnect
 
 Job Portal for Students and Recruiters
 
-Overview
+📌 Overview
 
-CareerConnect is a full-stack MERN application designed to simplify the job application process for students and recruiters. It provides real-time application tracking, notifications, and structured workflows to improve hiring efficiency.
+CareerConnect is a full-stack MERN application that simplifies the job application process for students and recruiters. It offers real-time application tracking, notifications, and structured workflows to improve hiring efficiency.
 
-Features
-For Students
+✨ Features
+👨‍🎓 For Students
 
 Browse and apply to job listings
 
@@ -17,7 +17,7 @@ Receive notifications on application updates
 
 Centralized dashboard for all applications
 
-For Recruiters
+👔 For Recruiters
 
 Post and manage job listings
 
@@ -27,7 +27,7 @@ View application statistics and metrics
 
 Streamlined applicant management workflow
 
-Highlights
+⚡ Highlights
 
 Real-time notifications
 
@@ -37,8 +37,7 @@ Secure authentication using JWT
 
 Clean and intuitive user interface
 
-Technology Stack
-
+🛠️ Technology Stack
 Frontend
 
 React.js
@@ -75,7 +74,7 @@ Postman
 
 VS Code
 
-Getting Started
+🚀 Getting Started
 Clone the Repository
 git clone https://github.com/dynamicshreyashh/CareerConnect.git
 cd CareerConnect
@@ -96,4 +95,6 @@ CLIENT_URL=http://localhost:3000
 Frontend Setup
 cd frontend
 npm install
-npm start
+npm start<img width="1495" height="586" alt="Screenshot 2025-12-01 171555" src="https://github.com/user-attachments/assets/838b6678-d272-4e78-8b49-202c0598653c" />
+<img width="1335" height="672" alt="Screenshot 2025-12-01 171815" src="https://github.com/user-attachments/assets/ce7c5904-da05-48eb-a85f-fcd227d7b00c" />
+<img width="1491" height="872" alt="careerconnect" src="https://github.com/user-attachments/assets/f1dced43-6ca0-40ee-9f07-ea75cc1d8ef0" />
