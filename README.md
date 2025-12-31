@@ -75,15 +75,6 @@ Frontend (.env)
 env
 REACT_APP_API_URL=http://localhost:5000
 
-🔗 API Endpoints
-Method	Endpoint	Description	Access
-POST	/api/auth/register	User Registration	Public
-POST	/api/auth/login	User Login	Public
-GET	/api/jobs	Get All Jobs	Both
-POST	/api/jobs	Create New Job	Recruiter
-POST	/api/applications	Apply for Job	Student
-PUT	/api/applications/:id	Update Status	Recruiter
-
 🤝 Contributing
 We welcome contributions! Here's how:<img width="1491" height="872" alt="Screenshot 2025-12-02 160619" src="https://github.com/user-attachments/assets/b9c8fb72-ea58-4255-a199-ff4695fe8945" />
 
