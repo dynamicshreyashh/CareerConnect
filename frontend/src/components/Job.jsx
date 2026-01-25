@@ -7,9 +7,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { USER_API_END_POINT } from "@/utils/constants";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 const Job = ({ job }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((store) => store.auth);
 
   const daysAgo = (dateString) => {
     if (!dateString) return "Today";
@@ -23,6 +25,19 @@ const Job = ({ job }) => {
   };
 
   const saveJob = async () => {
+    // Check if user is authenticated
+    if (!user) {
+      toast.error("Please login to save jobs");
+      navigate("/login");
+      return;
+    }
+
+    // Check if user is a student
+    if (user.role !== "student") {
+      toast.error("Only students can save jobs");
+      return;
+    }
+
     try {
       const res = await axios.post(
         `${USER_API_END_POINT}/save-job/${job._id}`,
@@ -46,14 +61,16 @@ const Job = ({ job }) => {
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{daysAgo(job?.createdAt)}</p>
 
-        <Button
-          onClick={saveJob}
-          className="rounded-full"
-          size="icon"
-          variant="outline"
-        >
-          <Bookmark />
-        </Button>
+        {user && user.role === "student" && (
+          <Button
+            onClick={saveJob}
+            className="rounded-full"
+            size="icon"
+            variant="outline"
+          >
+            <Bookmark />
+          </Button>
+        )}
       </div>
 
       {/* company */}
@@ -100,13 +117,15 @@ const Job = ({ job }) => {
         >
           Details
         </Button>
-        <Button
-          onClick={saveJob}
-          variant="outline"
-          className="w-full bg-purple-700 text-white"
-        >
-          Save For Later
-        </Button>
+        {user && user.role === "student" && (
+          <Button
+            onClick={saveJob}
+            variant="outline"
+            className="w-full bg-purple-700 text-white"
+          >
+            Save For Later
+          </Button>
+        )}
       </div>
     </div>
   );

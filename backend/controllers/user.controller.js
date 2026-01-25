@@ -1,12 +1,10 @@
 import { User } from "../models/user.model.js";
+import { Job } from "../models/job.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
-/* =====================================
-   REGISTER CONTROLLER
-===================================== */
 export const register = async (req, res) => {
   try {
     console.log("BODY:", req.body);
@@ -201,5 +199,99 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+  }
+};
+
+/* =====================================
+   GET CURRENT USER (ME)
+===================================== */
+export const getMe = async (req, res) => {
+  try {
+    const userId = req.id;
+    const user = await User.findById(userId).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      user,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+};
+
+/* =====================================
+   SAVE JOB CONTROLLER (STUDENT ONLY)
+===================================== */
+export const saveJob = async (req, res) => {
+  try {
+    const userId = req.id;
+    const jobId = req.params.id;
+
+    if (!jobId) {
+      return res.status(400).json({
+        message: "Job ID is required",
+        success: false,
+      });
+    }
+
+    // Get user and check if they exist
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    // Check if user is a student (only students can save jobs)
+    if (user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can save jobs",
+        success: false,
+      });
+    }
+
+    // Check if job exists
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found",
+        success: false,
+      });
+    }
+
+    // Check if job is already saved
+    if (user.savedJobs.includes(jobId)) {
+      return res.status(400).json({
+        message: "Job already saved",
+        success: false,
+      });
+    }
+
+    // Add job to savedJobs array
+    user.savedJobs.push(jobId);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Job saved successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
   }
 };

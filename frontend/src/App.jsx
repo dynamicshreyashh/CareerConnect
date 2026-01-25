@@ -13,6 +13,7 @@ import AdminJobs from "./components/admin/AdminJobs";
 import PostJob from "./components/admin/PostJob";
 import Applicants from "./components/admin/Applicants";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
+import NotFound from "./components/NotFound";
 
 const appRouter = createBrowserRouter([
   //client Side
@@ -68,6 +69,10 @@ const appRouter = createBrowserRouter([
   {
     path: "/admin/jobs/:id/applicants",
     element: <Applicants />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

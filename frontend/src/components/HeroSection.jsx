@@ -11,9 +11,16 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const searchHandler = () => {
-    dispatch(setSearchedQuery(query));
-    console.log(query);
-    navigate("/browse");
+    if (query.trim()) {
+      dispatch(setSearchedQuery(query.trim()));
+      navigate("/browse");
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      searchHandler();
+    }
   };
 
   return (
@@ -41,7 +48,9 @@ const HeroSection = () => {
           <input
             type="text"
             placeholder="Find your dream job"
+            value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="outline-none border-none w-full text-sm sm:text-base"
           />
           <Button

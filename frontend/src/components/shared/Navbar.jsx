@@ -3,8 +3,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@radix-ui/react-popover";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+} from "../ui/popover";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { LogOut, User2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,6 +19,16 @@ const Navbar = () => {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Get user initials for fallback
+  const getUserInitials = (fullName) => {
+    if (!fullName) return "U";
+    const names = fullName.trim().split(" ");
+    if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
+    }
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  };
 
   const logoutHandler = async () => {
     try {
@@ -81,52 +91,78 @@ const Navbar = () => {
               </Link>
             </div>
           ) : (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Avatar className=" cursor-pointer w-10 h-10 rounded-full overflow-hidden">
-                  <AvatarImage
-                    src={user?.profile?.profilePhoto}
-                    alt="@shadcn"
-                    className="w-full h-full object-cover"
-                  />
-                </Avatar>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 bg-white rounded-lg shadow-lg flex flex-col  gap-3">
-                <div className="flex gap-2 space-y-1">
-                  <Avatar className="w-8 h-8 rounded-full overflow-hidden">
-                    <AvatarImage
-                      src={user?.profile?.profilePhoto}
-                      alt="@shadcn"
-                      className="w-full h-full object-cover"
-                    />
-                  </Avatar>
-                  <div>
-                    <h4 className="font-bold">{user?.fullName}</h4>
-                    <p className="text-sm  text-muted-foreground">
-                      {user?.profile?.bio}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col my-2 text-gray-600">
-                  {user && user?.role == "student" && (
-                    <div className="flex w-fit items-center gap-2 cursor-pointer">
-                      <User2 />
-                      <Button variant="link">
-                        {" "}
-                        <Link to={"/profile"}>View prolfile</Link>{" "}
-                      </Button>
+            <div className="flex items-center gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 hover:bg-gray-100 rounded-full px-3 py-2"
+                  >
+                    <Avatar className="cursor-pointer w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 bg-gray-200">
+                      <AvatarImage
+                        src={user?.profile?.profilePhoto}
+                        alt={user?.fullName || "User"}
+                        className="w-full h-full object-cover"
+                      />
+                      <AvatarFallback className="bg-purple-600 text-white font-semibold text-sm">
+                        {getUserInitials(user?.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:block font-medium text-gray-700">
+                      {user?.fullName}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4 bg-white rounded-lg shadow-lg border flex flex-col gap-3 z-50">
+                  <div className="flex gap-3 items-center">
+                    <Avatar className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-200">
+                      <AvatarImage
+                        src={user?.profile?.profilePhoto}
+                        alt={user?.fullName || "User"}
+                        className="w-full h-full object-cover"
+                      />
+                      <AvatarFallback className="bg-purple-600 text-white font-semibold text-lg">
+                        {getUserInitials(user?.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h4 className="font-bold text-lg">{user?.fullName}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {user?.email}
+                      </p>
+                      {user?.profile?.bio && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {user?.profile?.bio}
+                        </p>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  <div className="border-t pt-3 mt-2 space-y-1">
+                    {user && user?.role === "student" && (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 hover:bg-gray-100"
+                        asChild
+                      >
+                        <Link to={"/profile"}>
+                          <User2 className="w-4 h-4" />
+                          View Profile
+                        </Link>
+                      </Button>
+                    )}
 
-                  <div className="flex w-fit items-center gap-2 cursor-pointer">
-                    <LogOut />
-                    <Button onClick={logoutHandler} variant="link">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-2 hover:bg-red-50 hover:text-red-600 text-red-600"
+                      onClick={logoutHandler}
+                    >
+                      <LogOut className="w-4 h-4" />
                       Logout
                     </Button>
                   </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+                </PopoverContent>
+              </Popover>
+            </div>
           )}
         </div>
       </div>

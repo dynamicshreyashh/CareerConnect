@@ -1,6 +1,7 @@
 // backend/controllers/company.controller.js
 
 import { Company } from "../models/company.model.js";
+import { Job } from "../models/job.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
@@ -117,5 +118,60 @@ export const updateCompany = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const deleteCompany = async (req, res) => {
+  try {
+    const companyId = req.params.id;
+    const userId = req.id;
+
+    if (!companyId) {
+      return res.status(400).json({
+        message: "Company ID is required",
+        success: false,
+      });
+    }
+
+    // Find the company and verify ownership
+    const company = await Company.findById(companyId);
+
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found",
+        success: false,
+      });
+    }
+
+    // Check if the company belongs to the user
+    if (company.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        message: "You don't have permission to delete this company",
+        success: false,
+      });
+    }
+
+    // Check if there are any jobs associated with this company
+    const jobsCount = await Job.countDocuments({ company: companyId });
+    if (jobsCount > 0) {
+      return res.status(400).json({
+        message: `Cannot delete company. There are ${jobsCount} job(s) associated with this company. Please delete the jobs first.`,
+        success: false,
+      });
+    }
+
+    // Delete the company
+    await Company.findByIdAndDelete(companyId);
+
+    return res.status(200).json({
+      message: "Company deleted successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Delete company error:", error);
+    return res.status(500).json({
+      message: error.message || "Internal server error",
+      success: false,
+    });
   }
 };

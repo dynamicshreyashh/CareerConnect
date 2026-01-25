@@ -25,6 +25,19 @@ const JobDescription = () => {
   const dispatch = useDispatch();
 
   const saveJob = async () => {
+    // Check if user is authenticated
+    if (!user) {
+      toast.error("Please login to save jobs");
+      navigate("/login");
+      return;
+    }
+
+    // Check if user is a student
+    if (user.role !== "student") {
+      toast.error("Only students can save jobs");
+      return;
+    }
+
     try {
       const res = await axios.post(
         `${USER_API_END_POINT}/save-job/${jobId}`,
@@ -154,23 +167,27 @@ const JobDescription = () => {
         </div>
 
         <div className="flex gap-3">
-          <Button
-            onClick={saveJob}
-            variant="outline"
-            className="bg-purple-600 text-white"
-          >
-            Save Job
-          </Button>
+          {user && user.role === "student" && (
+            <Button
+              onClick={saveJob}
+              variant="outline"
+              className="bg-purple-600 text-white"
+            >
+              Save Job
+            </Button>
+          )}
 
-          <Button
-            onClick={!isApplied ? applyJobHandler : null}
-            disabled={isApplied}
-            className={`text-white ${
-              isApplied ? "bg-gray-500" : "bg-purple-700"
-            }`}
-          >
-            {isApplied ? "Already Applied" : "Apply Now"}
-          </Button>
+          {user && user.role === "student" && (
+            <Button
+              onClick={!isApplied ? applyJobHandler : null}
+              disabled={isApplied}
+              className={`text-white ${
+                isApplied ? "bg-gray-500" : "bg-purple-700"
+              }`}
+            >
+              {isApplied ? "Already Applied" : "Apply Now"}
+            </Button>
+          )}
         </div>
       </div>
 
