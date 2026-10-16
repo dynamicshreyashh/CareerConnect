@@ -1,41 +1,41 @@
-import React, { useEffect } from "react";
-import Navbar from "./shared/Navbar";
-import Job from "./Job";
-import Footer from "./shared/Footer";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSearchedQuery } from "@/redux/jobSlice";
+import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
+import Navbar from "./shared/Navbar";
+import Footer from "./shared/Footer";
+import Job from "./Job";
 import useGetAllJobs from "@/hooks/useGetAllJobs";
+import { setSearchedQuery } from "@/redux/jobSlice";
 
 const Browse = () => {
   useGetAllJobs();
-  const { allJobs } = useSelector((store) => store.job);
+  const { allJobs, searchedQuery } = useSelector((store) => store.job);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    return () => {
-      dispatch(setSearchedQuery(""));
-    };
-  }, []);
+  const results = useMemo(() => {
+    const query = String(searchedQuery || "").trim().toLowerCase();
+    if (!query) return allJobs;
+    return allJobs.filter((job) => [job.title, job.description, job.location, job.jobType, job.company?.name, ...(Array.isArray(job.requirements) ? job.requirements : [])].filter(Boolean).join(" ").toLowerCase().includes(query));
+  }, [allJobs, searchedQuery]);
+
+  useEffect(() => () => dispatch(setSearchedQuery("")), [dispatch]);
+
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
-        <h1 className="font-bold text-xl my-5">
-          Search result ({allJobs.length})
-        </h1>
-        {allJobs.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No jobs found.</p>
-            <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria.</p>
+      <main className="cc-content-width flex-1">
+        <div className="cc-page-heading"><span className="cc-eyebrow">EXPLORE CAREERCONNECT</span><h1>{searchedQuery ? "Explore " + searchedQuery : "Opportunities picked for you."}</h1><p>Search results reflect job details posted by recruiters on CareerConnect.</p></div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <span className="text-sm text-slate-500">{results.length} matching role{results.length === 1 ? "" : "s"}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 rounded-xl bg-white border border-slate-200"><Search size={16} className="text-slate-400" /><input aria-label="Refine search results" className="w-44 py-3 text-sm outline-none" value={searchedQuery} onChange={(event) => dispatch(setSearchedQuery(event.target.value))} placeholder="Refine by role…" /></div>
+            <button type="button" className="text-sm font-bold text-violet-600 px-2" onClick={() => navigate("/jobs")}>Advanced filters</button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {allJobs.map((job) => {
-              return <Job key={job._id} job={job} />;
-            })}
-          </div>
-        )}
-      </div>
+        </div>
+        {results.length ? <div className="cc-job-grid">{results.map((job) => <Job key={job._id} job={job} />)}</div> : <div className="cc-empty-state"><Search size={27} className="mx-auto mb-3 text-violet-500" /><strong className="block text-slate-800">No matching jobs found</strong><p className="mt-2 mb-4">Try a broader job title, skill, or company keyword.</p><button className="cc-btn cc-btn-primary" type="button" onClick={() => dispatch(setSearchedQuery(""))}>View all jobs</button></div>}
+      </main>
       <Footer />
     </div>
   );

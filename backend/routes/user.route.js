@@ -1,37 +1,28 @@
 import express from "express";
 import {
+  getMe,
+  getSavedJobs,
   login,
   logout,
   register,
-  updateProfile,
+  removeSavedJob,
   saveJob,
-  getMe,
+  updateProfile,
 } from "../controllers/user.controller.js";
 import isAuthenticated from "../middlewares/isAuthenticates.js";
-import { allowAny, singleUpload } from "../middlewares/multer.js";
+import { allowAny, profileUpload } from "../middlewares/multer.js";
+import requireRole from "../middlewares/requireRole.js";
 
 const router = express.Router();
 
-// Signup should accept ANY form-data (with or without file)
-router.route("/register").post(allowAny, register);
-
-// Login does not need multer
-router.route("/login").post(login);
-
-// Logout simple
-router.route("/logout").get(logout);
-
-// Get current user
-router.route("/me").get(isAuthenticated, getMe);
-
-// Profile update → needs file upload
-router
-  .route("/profile/update")
-  .post(isAuthenticated, singleUpload, updateProfile);
-
-// Save job → only for students
-router
-  .route("/save-job/:id")
-  .post(isAuthenticated, saveJob);
+router.post("/register", allowAny, register);
+router.post("/login", login);
+router.post("/logout", logout);
+router.get("/logout", logout);
+router.get("/me", isAuthenticated, getMe);
+router.post("/profile/update", isAuthenticated, profileUpload, updateProfile);
+router.get("/saved-jobs", isAuthenticated, requireRole("student"), getSavedJobs);
+router.post("/save-job/:id", isAuthenticated, requireRole("student"), saveJob);
+router.delete("/save-job/:id", isAuthenticated, requireRole("student"), removeSavedJob);
 
 export default router;

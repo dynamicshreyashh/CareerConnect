@@ -1,5 +1,6 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticates.js";
+import requireRole from "../middlewares/requireRole.js";
 import {
   getCompany,
   getCompanyById,
@@ -7,13 +8,14 @@ import {
   updateCompany,
   deleteCompany,
 } from "../controllers/company.controller.js";
-import { singleUpload } from "../middlewares/multer.js";
+import { companyLogoUpload } from "../middlewares/multer.js";
+
 const router = express.Router();
 
-router.route("/register").post(isAuthenticated, registerCompany);
-router.route("/get").get(isAuthenticated, getCompany);
-router.route("/get/:id").get(isAuthenticated, getCompanyById);
-router.route("/update/:id").put(isAuthenticated, singleUpload, updateCompany);
-router.delete("/delete/:id", isAuthenticated, deleteCompany);
+router.post("/register", isAuthenticated, requireRole("recruiter"), registerCompany);
+router.get("/get", isAuthenticated, requireRole("recruiter"), getCompany);
+router.get("/get/:id", isAuthenticated, requireRole("recruiter"), getCompanyById);
+router.put("/update/:id", isAuthenticated, requireRole("recruiter"), companyLogoUpload, updateCompany);
+router.delete("/delete/:id", isAuthenticated, requireRole("recruiter"), deleteCompany);
 
 export default router;

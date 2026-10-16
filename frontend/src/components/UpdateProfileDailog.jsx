@@ -1,15 +1,9 @@
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, UploadCloud } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { USER_API_END_POINT } from "@/utils/constants";
 import { setUser } from "@/redux/authSlice";
@@ -17,173 +11,65 @@ import { toast } from "sonner";
 import axios from "axios";
 
 const UpdateProfileDailog = ({ open, setOpen }) => {
-  const [loading, setLoading] = useState(false);
   const { user } = useSelector((store) => store.auth);
-
-  const [input, setInput] = useState({
-    fullName: user?.fullName,
-    email: user?.email,
-    phoneNumber: user?.phoneNumber,
-    bio: user?.profile?.bio,
-    skills: user?.profile?.skills?.map((skill) => skill),
-    file: user?.profile?.resume,
-  });
-
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState({ fullName: "", email: "", phoneNumber: "", bio: "", skills: "", file: null });
 
-  const changeEventHandler = (e) => {
-    setInput({ ...input, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    if (open && user) setInput({
+      fullName: user.fullName || "",
+      email: user.email || "",
+      phoneNumber: user.phoneNumber || "",
+      bio: user.profile?.bio || "",
+      skills: (user.profile?.skills || []).join(", "),
+      file: null,
+    });
+  }, [open, user]);
 
-  const fileChangeHandler = (e) => {
-    const file = e.target.files?.[0];
-    setInput({ ...input, file });
-  };
+  const change = (event) => setInput((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const submit = async (event) => {
+    event.preventDefault();
+    const data = new FormData();
+    data.append("fullName", input.fullName.trim());
+    data.append("email", input.email.trim());
+    data.append("phoneNumber", input.phoneNumber.trim());
+    data.append("bio", input.bio.trim());
+    data.append("skills", input.skills);
+    if (input.file) data.append("file", input.file);
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("fullName", input.fullName);
-    formData.append("email", input.email);
-    formData.append("phoneNumber", input.phoneNumber);
-    formData.append("bio", input.bio);
-    formData.append("skills", input.skills);
-    if (input.file) {
-      formData.append("file", input.file);
-    }
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await axios.post(
-        `${USER_API_END_POINT}/profile/update`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
-        }
-      );
-      if (res.data.success) {
-        dispatch(setUser(res.data.user));
-        toast.success(res.data.message);
+      const response = await axios.post(USER_API_END_POINT + "/profile/update", data, { withCredentials: true });
+      if (response.data.success) {
+        dispatch(setUser(response.data.user));
+        toast.success(response.data.message || "Profile updated.");
+        setOpen(false);
       }
     } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Unable to update your profile.");
     } finally {
       setLoading(false);
     }
-    setOpen(false);
-    console.log(input);
   };
+
   return (
-    <div>
-      <Dialog open={open} onInteractOutside={() => setOpen(false)}>
-        <DialogContent
-          onInteractOutside={() => setOpen(false)}
-          className="bg-white text-black sm:max-w-[425px]"
-        >
-          <DialogHeader>
-            <DialogTitle>Update Profile</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={submitHandler}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  name="fullName"
-                  type="text"
-                  value={input.fullName}
-                  onChange={changeEventHandler}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={input.email}
-                  onChange={changeEventHandler}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="number" className="">
-                  Number
-                </Label>
-                <Input
-                  id="number"
-                  name="phoneNumber"
-                  value={input.phoneNumber}
-                  onChange={changeEventHandler}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="bio" className="">
-                  Bio
-                </Label>
-                <Input
-                  id="bio"
-                  name="bio"
-                  value={input.bio}
-                  onChange={changeEventHandler}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="skills" className="">
-                  Skills
-                </Label>
-                <Input
-                  id="skills"
-                  name="skills"
-                  value={input.skills}
-                  onChange={changeEventHandler}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="file" className="">
-                  Resume <span>(Image format only)</span> 
-                </Label>
-                <Input
-                  id="file"
-                  name="file"
-                  type="file"
-                  accept="application/image"
-                  onChange={fileChangeHandler}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              {loading ? (
-                <Button className="w-full my-4">
-                  {" "}
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please Wait{" "}
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  className="w-full my-2  text-white bg-black"
-                >
-                  Update Profile
-                </Button>
-              )}
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="bg-white text-slate-900 sm:max-w-[540px]">
+        <DialogHeader><DialogTitle className="text-xl font-extrabold">Update your profile</DialogTitle><p className="text-sm text-slate-500">Help recruiters understand your experience and strengths.</p></DialogHeader>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div><Label htmlFor="profile-fullname" className="cc-form-label">Full name</Label><Input id="profile-fullname" name="fullName" value={input.fullName} onChange={change} required maxLength={100} /></div>
+            <div><Label htmlFor="profile-phone" className="cc-form-label">Phone number</Label><Input id="profile-phone" name="phoneNumber" value={input.phoneNumber} onChange={change} required /></div>
+            <div className="sm:col-span-2"><Label htmlFor="profile-email" className="cc-form-label">Email address</Label><Input id="profile-email" name="email" type="email" value={input.email} onChange={change} required /></div>
+            <div className="sm:col-span-2"><Label htmlFor="profile-bio" className="cc-form-label">Professional summary</Label><textarea id="profile-bio" name="bio" value={input.bio} onChange={change} className="cc-form-control min-h-24 resize-y" maxLength={1000} placeholder="A short introduction about your focus and goals" /></div>
+            <div className="sm:col-span-2"><Label htmlFor="profile-skills" className="cc-form-label">Skills</Label><Input id="profile-skills" name="skills" value={input.skills} onChange={change} placeholder="Java, Spring Boot, SQL, REST APIs" /><p className="text-[11px] text-slate-400 mt-1">Separate each skill with a comma.</p></div>
+            <div className="sm:col-span-2"><Label htmlFor="profile-resume" className="cc-form-label">Upload resume or profile image <span className="font-normal text-slate-400">(optional)</span></Label><label className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 p-3 hover:border-violet-400 cursor-pointer"><UploadCloud size={19} className="text-violet-600" /><span className="flex-1 min-w-0"><strong className="block text-xs truncate">{input.file?.name || user?.profile?.resumeOriginalName || "Choose a PDF, Word document, or image"}</strong><small className="block text-[10px] text-slate-400 mt-1">Maximum 10 MB</small></span><input id="profile-resume" className="sr-only" type="file" accept=".pdf,.doc,.docx,image/png,image/jpeg,image/webp" onChange={(event) => setInput((current) => ({ ...current, file: event.target.files?.[0] || null }))} /></label></div>
+          </div>
+          <DialogFooter className="gap-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={loading} className="bg-violet-600 text-white hover:bg-violet-700">{loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</> : "Save profile"}</Button></DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

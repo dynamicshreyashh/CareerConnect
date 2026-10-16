@@ -1,28 +1,28 @@
-import { setAllAppliedJobs } from "@/redux/jobSlice";
-import { APPLICATION_API_END_POINT } from "@/utils/constants";
-import axios from "axios";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import axios from "axios";
 import { toast } from "sonner";
+import { setAllAppliedJobs } from "@/redux/jobSlice";
+import { APPLICATION_API_END_POINT } from "@/utils/constants";
 
 const useGetAppliedJobs = () => {
   const dispatch = useDispatch();
   useEffect(() => {
-    const fethAppliedJobs = async () => {
+    let active = true;
+    const fetchApplications = async () => {
       try {
-        const res = await axios.get(`${APPLICATION_API_END_POINT}/get`, {
-          withCredentials: true,
-        });
-        if (res.data.success) {
-          dispatch(setAllAppliedJobs(res.data.application));
-        //   toast.success(res.data.message);
-        }
+        const response = await axios.get(APPLICATION_API_END_POINT + "/get", { withCredentials: true });
+        if (active && response.data.success) dispatch(setAllAppliedJobs(response.data.application || []));
       } catch (error) {
-        toast.error(error.res.data.message);
+        if (active) {
+          dispatch(setAllAppliedJobs([]));
+          if (error.response?.status !== 401) toast.error(error.response?.data?.message || "Unable to load your applications.");
+        }
       }
     };
-    fethAppliedJobs();
-  }, []);
+    fetchApplications();
+    return () => { active = false; };
+  }, [dispatch]);
 };
 
 export default useGetAppliedJobs;
