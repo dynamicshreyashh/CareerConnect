@@ -1,133 +1,63 @@
-import React from "react";
-import { Button } from "./ui/button";
-import { Bookmark } from "lucide-react";
-import { Avatar, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
+import { useMemo, useState } from "react";
+import { Bookmark, BookmarkCheck, ArrowUpRight, BriefcaseBusiness, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { USER_API_END_POINT } from "@/utils/constants";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "@/redux/authSlice";
 
 const Job = ({ job }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((store) => store.auth);
+  const [saving, setSaving] = useState(false);
+  const companyName = job?.company?.name || "Hiring company";
+  const initials = companyName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const isSaved = useMemo(() => (user?.savedJobs || []).some((saved) => String(saved?._id || saved) === String(job?._id)), [user?.savedJobs, job?._id]);
+  const posted = job?.createdAt ? new Date(job.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "New";
 
-  const daysAgo = (dateString) => {
-    if (!dateString) return "Today";
-    const createdAt = new Date(dateString);
-    const now = new Date();
-    const diff = now - createdAt;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (isNaN(days)) return "Today";
-    if (days === 0) return "Today";
-    return `${days} days ago`;
-  };
-
-  const saveJob = async () => {
-    // Check if user is authenticated
+  const toggleSaved = async (event) => {
+    event.stopPropagation();
     if (!user) {
-      toast.error("Please login to save jobs");
+      toast.info("Sign in with your student account to save jobs.");
       navigate("/login");
       return;
     }
-
-    // Check if user is a student
     if (user.role !== "student") {
-      toast.error("Only students can save jobs");
+      toast.error("Only student accounts can save jobs.");
       return;
     }
-
+    if (saving) return;
+    setSaving(true);
     try {
-      const res = await axios.post(
-        `${USER_API_END_POINT}/save-job/${job._id}`,
-        {},
-        { withCredentials: true }
-      );
-      if (res.data.success) {
-        toast.success("Job saved for later");
-      } else {
-        toast.error(res.data.message || "Failed to save job");
+      const response = isSaved
+        ? await axios.delete(USER_API_END_POINT + "/save-job/" + job._id, { withCredentials: true })
+        : await axios.post(USER_API_END_POINT + "/save-job/" + job._id, {}, { withCredentials: true });
+      if (response.data.success) {
+        const savedJobs = response.data.savedJobs || (isSaved ? (user.savedJobs || []).filter((saved) => String(saved?._id || saved) !== String(job._id)) : [...(user.savedJobs || []), job._id]);
+        dispatch(setUser({ ...user, savedJobs }));
+        toast.success(isSaved ? "Removed from saved jobs." : "Job saved for later.");
       }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to save job");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to update saved jobs.");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="p-5 rounded-md bg-white border shadow-sm hover:shadow-md transition-all">
-      {/* top row */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{daysAgo(job?.createdAt)}</p>
-
-        {user && user.role === "student" && (
-          <Button
-            onClick={saveJob}
-            className="rounded-full"
-            size="icon"
-            variant="outline"
-          >
-            <Bookmark />
-          </Button>
-        )}
+    <article className="cc-job-card" onClick={() => navigate("/description/" + job._id)} onKeyDown={(event) => event.key === "Enter" && navigate("/description/" + job._id)} role="link" tabIndex={0}>
+      <div className="cc-job-card-head">
+        {job?.company?.logo ? <img className="cc-company-logo" src={job.company.logo} alt={companyName + " logo"} /> : <span className="cc-company-logo cc-company-initials">{initials || <BriefcaseBusiness size={18} />}</span>}
+        <div className="flex items-center gap-2"><span className="cc-job-new">{posted}</span>{user?.role === "student" && <button type="button" aria-label={isSaved ? "Remove saved job" : "Save job"} title={isSaved ? "Remove saved job" : "Save job"} disabled={saving} onClick={toggleSaved} className="inline-grid place-items-center rounded-full border border-slate-100 bg-white p-2 text-violet-600 hover:bg-violet-50 disabled:opacity-50">{isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}</button>}</div>
       </div>
-
-      {/* company */}
-      <div className="flex items-center gap-4 my-4">
-        <Avatar>
-          <AvatarImage
-            className="object-cover"
-            src={job?.company?.logo}
-            alt={job?.company?.name || "Company logo"}
-          />
-        </Avatar>
-        <div>
-          <h1 className="font-medium text-lg">{job?.company?.name}</h1>
-          <p className="text-sm text-gray-500">{job?.location}</p>
-        </div>
-      </div>
-
-      {/* title + short desc */}
-      <h1 className="font-bold text-lg">{job?.title}</h1>
-      <p className="text-sm text-gray-600 mt-2">
-        {job?.description?.length > 120
-          ? job.description.slice(0, 120) + "..."
-          : job?.description}
-      </p>
-
-      {/* tags */}
-      <div className="flex gap-2 mt-4 flex-wrap">
-        <Badge variant="ghost" className="text-blue-700 font-bold">
-          {job?.position} Positions
-        </Badge>
-        <Badge variant="ghost" className="text-red-600 font-bold">
-          {job?.jobType}
-        </Badge>
-        <Badge variant="ghost" className="text-purple-700 font-bold">
-          {job?.salary} LPA
-        </Badge>
-      </div>
-
-      {/* actions */}
-      <div className="flex gap-3 mt-6">
-        <Button
-          onClick={() => navigate(`/description/${job._id}`)}
-          className="w-full bg-black text-white"
-        >
-          Details
-        </Button>
-        {user && user.role === "student" && (
-          <Button
-            onClick={saveJob}
-            variant="outline"
-            className="w-full bg-purple-700 text-white"
-          >
-            Save For Later
-          </Button>
-        )}
-      </div>
-    </div>
+      <p className="cc-job-company">{companyName}</p>
+      <h3>{job?.title || "Open position"}</h3>
+      <p className="cc-job-description">{job?.description || "Explore this opportunity and see whether it is the right next step for you."}</p>
+      <div className="cc-job-meta"><span><MapPin size={14} /> {job?.location || "Location flexible"}</span><span><BriefcaseBusiness size={14} /> {job?.jobType || "Full-time"}</span></div>
+      <div className="cc-job-card-footer"><span>{job?.salary ? Number(job.salary).toLocaleString("en-IN") + " LPA" : "Compensation discussed"}<small>{job?.position || 1} opening{Number(job?.position || 1) === 1 ? "" : "s"} · {job?.experienceLevel ?? 0}+ yrs</small></span><span className="cc-job-arrow"><ArrowUpRight size={19} /></span></div>
+    </article>
   );
 };
 

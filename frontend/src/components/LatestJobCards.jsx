@@ -1,36 +1,23 @@
-import React from "react";
-import { Badge } from "./ui/badge";
-import { Ghost } from "lucide-react";
+import { ArrowUpRight, MapPin, BriefcaseBusiness } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LatestJobCards = ({ job }) => {
   const navigate = useNavigate();
-  // console.log(job)
+  const companyName = job?.company?.name || "Hiring company";
+  const initials = companyName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+
   return (
-    <div
-      onClick={() => navigate(`/description/${job._id}`)}
-      className="p-5 rounded-md shadow-md bg-white border border-gray-100 cursor-pointer"
-    >
-      <div>
-        <h1 className="font-medium text-lg">{job?.company?.name}</h1>
-        <p className="text-sm text-gray-500">{job?.location}</p>
+    <article className="cc-job-card" onClick={() => navigate(`/description/${job._id}`)} onKeyDown={(event) => event.key === "Enter" && navigate(`/description/${job._id}`)} role="link" tabIndex={0}>
+      <div className="cc-job-card-head">
+        {job?.company?.logo ? <img className="cc-company-logo" src={job.company.logo} alt={`${companyName} logo`} /> : <span className="cc-company-logo cc-company-initials">{initials || <BriefcaseBusiness size={20} />}</span>}
+        <span className="cc-job-new">Recently posted</span>
       </div>
-      <div>
-        <h1 className="font-bold text-lg my-2">{job?.title}</h1>
-        <p className="text-sm text-gray-600">{job?.description}</p>
-      </div>
-      <div className="flex items-center gap-4 mt-2">
-        <Badge className="text-blue-700 font-bold " variant={Ghost}>
-          {job?.position} Positions
-        </Badge>
-        <Badge className="text-[#F83002] " variant={Ghost}>
-          {job?.jobType}
-        </Badge>
-        <Badge className="text-[#6A38C2] " variant={Ghost}>
-          {job?.salary} LPA
-        </Badge>
-      </div>
-    </div>
+      <p className="cc-job-company">{companyName}</p>
+      <h3>{job?.title || "Open position"}</h3>
+      <p className="cc-job-description">{job?.description || "Explore this opportunity and see whether it is the right next step for you."}</p>
+      <div className="cc-job-meta"><span><MapPin size={14} /> {job?.location || "Location flexible"}</span><span><BriefcaseBusiness size={14} /> {job?.jobType || "Full-time"}</span></div>
+      <div className="cc-job-card-footer"><span>{job?.salary ? `₹${Number(job.salary).toLocaleString("en-IN")} LPA` : "Compensation shared in details"}{job?.position ? <small>{job.position} opening{job.position === 1 ? "" : "s"}</small> : null}</span><span className="cc-job-arrow"><ArrowUpRight size={19} /></span></div>
+    </article>
   );
 };
 

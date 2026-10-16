@@ -1,54 +1,34 @@
-import React from "react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "./ui/carousel";
-import { Button } from "./ui/button";
+import { Code2, Database, Layers3, LineChart, Megaphone, ShieldCheck } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setSearchedQuery } from "@/redux/jobSlice";
 
-const categeory = [
-  "Frontend Developer",
-      "Backend Developer",
-      "Full Stack Developer",
-      "Data Scientist",
-      "Product Manager",
-      "DevOps Engineer",
+const categories = [
+  { label: "Frontend Developer", icon: Code2 },
+  { label: "Backend Developer", icon: Database },
+  { label: "Full Stack Developer", icon: Layers3 },
+  { label: "Data Scientist", icon: LineChart },
+  { label: "Product Manager", icon: Megaphone },
+  { label: "DevOps Engineer", icon: ShieldCheck },
 ];
 
 const CategeoryCarousel = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const searchJobHandler = (query) => {
     dispatch(setSearchedQuery(query));
     navigate("/browse");
   };
 
   return (
-    <div>
-      <Carousel className="w-full max-w-xl mx-auto  my-20">
-        <CarouselContent>
-          {categeory.map((cat, index) => (
-            <CarouselItem className="md:basis-1/2 lg:basis-1/3 " key={index}>
-              <Button
-                onClick={() => searchJobHandler(cat)}
-                variant="outline"
-                className="text-white bg-black rounded-full"
-              >
-                {cat}
-              </Button>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
-    </div>
+    <section className="cc-category-section">
+      <div className="cc-category-inner">
+        <div><span className="cc-category-label">EXPLORE BY EXPERTISE</span><h2 className="cc-category-title">What do you want to build?</h2></div>
+        <div className="cc-category-list">
+          {categories.map(({ label, icon: Icon }) => <button className="cc-category-chip" type="button" key={label} onClick={() => searchJobHandler(label)}><Icon size={15} />{label}</button>)}
+        </div>
+      </div>
+    </section>
   );
 };
 

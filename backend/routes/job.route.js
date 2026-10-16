@@ -1,11 +1,15 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticates.js";
-import { getAdminJobs, getAllJobs, getJobById, jobPost } from "../controllers/job.controller.js";
-const router = express.Router()
+import requireRole from "../middlewares/requireRole.js";
+import { deleteJob, getAdminJobs, getAllJobs, getJobById, jobPost, updateJob } from "../controllers/job.controller.js";
 
-router.route("/post").post(isAuthenticated, jobPost)
-router.route("/get").get( getAllJobs)
-router.route("/getadminjobs").get(isAuthenticated, getAdminJobs)
-router.route("/get/:id").get(isAuthenticated, getJobById)
+const router = express.Router();
 
-export default router; 
+router.get("/get", getAllJobs);
+router.get("/get/:id", getJobById);
+router.post("/post", isAuthenticated, requireRole("recruiter"), jobPost);
+router.get("/getadminjobs", isAuthenticated, requireRole("recruiter"), getAdminJobs);
+router.put("/:id", isAuthenticated, requireRole("recruiter"), updateJob);
+router.delete("/:id", isAuthenticated, requireRole("recruiter"), deleteJob);
+
+export default router;

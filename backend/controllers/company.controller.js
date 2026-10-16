@@ -1,177 +1,80 @@
-// backend/controllers/company.controller.js
-
+import mongoose from "mongoose";
 import { Company } from "../models/company.model.js";
 import { Job } from "../models/job.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
+const fail = (res, error, message) => {
+  console.error(error);
+  return res.status(500).json({ success: false, message });
+};
+
 export const registerCompany = async (req, res) => {
   try {
-    const { companyName, description, website, location } = req.body;
-
-    if (!companyName) {
-      return res.status(400).json({
-        message: "Company Name is required",
-        success: false,
-      });
-    }
-
-    let company = await Company.findOne({ name: companyName });
-    if (company) {
-      return res.status(400).json({
-        message: "You can't register the same company again",
-        success: false,
-      });
-    }
-
-    company = await Company.create({
-      name: companyName,
-      description,
-      website,
-      location,
-      userId: req.id,
-    });
-
-    return res.status(201).json({
-      message: "Company registered successfully",
-      company,
-      success: true,
-    });
+    const { companyName, description = "", website = "", location = "" } = req.body;
+    const name = String(companyName || "").trim();
+    if (!name) return res.status(400).json({ success: false, message: "Company name is required." });
+    const existing = await Company.findOne({ name: { $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" }, userId: req.id });
+    if (existing) return res.status(409).json({ success: false, message: "You have already added this company." });
+    const company = await Company.create({ name, description: String(description).trim(), website: String(website).trim(), location: String(location).trim(), userId: req.id });
+    return res.status(201).json({ success: true, message: "Company added to your workspace.", company });
   } catch (error) {
-    console.log(error);
+    return fail(res, error, "Unable to create the company.");
   }
 };
 
 export const getCompany = async (req, res) => {
   try {
-    const companies = await Company.find({ userId: req.id });
-
-    return res.status(200).json({
-      companies,
-      success: true,
-    });
+    const companies = await Company.find({ userId: req.id }).sort({ createdAt: -1 }).lean();
+    return res.status(200).json({ success: true, companies });
   } catch (error) {
-    console.log(error);
+    return fail(res, error, "Unable to load your companies.");
   }
 };
 
 export const getCompanyById = async (req, res) => {
   try {
-    const company = await Company.findById(req.params.id);
-
-    if (!company) {
-      return res.status(400).json({
-        message: "No company found",
-        success: false,
-      });
-    }
-
-    return res.status(200).json({
-      company,
-      success: true,
-    });
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid company link." });
+    const company = await Company.findOne({ _id: req.params.id, userId: req.id }).lean();
+    if (!company) return res.status(404).json({ success: false, message: "Company not found in your recruiter account." });
+    return res.status(200).json({ success: true, company });
   } catch (error) {
-    console.log(error);
+    return fail(res, error, "Unable to load this company.");
   }
 };
 
 export const updateCompany = async (req, res) => {
   try {
-    const companyId = req.params.id;
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid company link." });
+    const company = await Company.findOne({ _id: req.params.id, userId: req.id });
+    if (!company) return res.status(404).json({ success: false, message: "Company not found in your recruiter account." });
     const { name, description, website, location } = req.body;
-
-    console.log("REQ FILE =>", req.file); // Debug log
-
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({
-        message: "Company logo needed",
-        success: false,
-      });
+    if (name !== undefined && String(name).trim()) company.name = String(name).trim();
+    if (description !== undefined) company.description = String(description).trim();
+    if (website !== undefined) company.website = String(website).trim();
+    if (location !== undefined) company.location = String(location).trim();
+    if (req.file) {
+      if (!process.env.CLOUDINARY_CLOUD_NAME) return res.status(503).json({ success: false, message: "Company logo uploads are not configured on this server." });
+      const uploaded = await cloudinary.uploader.upload(getDataUri(req.file).content, { folder: "careerconnect/companies" });
+      company.logo = uploaded.secure_url;
     }
-
-    // Convert file to Data URI
-    const fileUri = getDataUri(file);
-
-    // Upload to Cloudinary
-    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-    const logo = cloudResponse.secure_url;
-
-    const updateData = { name, description, website, location, logo };
-
-    const company = await Company.findByIdAndUpdate(companyId, updateData, {
-      new: true,
-    });
-
-    if (!company) {
-      return res.status(404).json({
-        message: "Company Not Found",
-        success: false,
-      });
-    }
-
-    return res.status(200).json({
-      message: "Company information updated",
-      company,
-      success: true,
-    });
+    await company.save();
+    return res.status(200).json({ success: true, message: "Company information updated.", company });
   } catch (error) {
-    console.log(error);
+    return fail(res, error, "Unable to update this company.");
   }
 };
 
 export const deleteCompany = async (req, res) => {
   try {
-    const companyId = req.params.id;
-    const userId = req.id;
-
-    if (!companyId) {
-      return res.status(400).json({
-        message: "Company ID is required",
-        success: false,
-      });
-    }
-
-    // Find the company and verify ownership
-    const company = await Company.findById(companyId);
-
-    if (!company) {
-      return res.status(404).json({
-        message: "Company not found",
-        success: false,
-      });
-    }
-
-    // Check if the company belongs to the user
-    if (company.userId.toString() !== userId.toString()) {
-      return res.status(403).json({
-        message: "You don't have permission to delete this company",
-        success: false,
-      });
-    }
-
-    // Check if there are any jobs associated with this company
-    const jobsCount = await Job.countDocuments({ company: companyId });
-    if (jobsCount > 0) {
-      return res.status(400).json({
-        message: `Cannot delete company. There are ${jobsCount} job(s) associated with this company. Please delete the jobs first.`,
-        success: false,
-      });
-    }
-
-    // Delete the company
-    await Company.findByIdAndDelete(companyId);
-
-    return res.status(200).json({
-      message: "Company deleted successfully",
-      success: true,
-    });
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid company link." });
+    const company = await Company.findOne({ _id: req.params.id, userId: req.id });
+    if (!company) return res.status(404).json({ success: false, message: "Company not found in your recruiter account." });
+    const jobsCount = await Job.countDocuments({ company: company._id });
+    if (jobsCount > 0) return res.status(409).json({ success: false, message: "This company has job postings. Remove those postings before deleting the company." });
+    await company.deleteOne();
+    return res.status(200).json({ success: true, message: "Company removed." });
   } catch (error) {
-    console.error("Delete company error:", error);
-    return res.status(500).json({
-      message: error.message || "Internal server error",
-      success: false,
-    });
+    return fail(res, error, "Unable to delete this company.");
   }
 };

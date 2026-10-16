@@ -1,17 +1,14 @@
 import axios from "axios";
 import { USER_API_END_POINT } from "./constants";
-import { setUser } from "@/redux/authSlice";
+import { setAuthReady, setUser } from "@/redux/authSlice";
 
 export const loadUser = async (dispatch) => {
   try {
-    const res = await axios.get(`${USER_API_END_POINT}/me`, {
-      withCredentials: true,
-    });
-
-    if (res.data.success) {
-      dispatch(setUser(res.data.user));
-    }
+    const response = await axios.get(USER_API_END_POINT + "/me", { withCredentials: true });
+    dispatch(setUser(response.data.user || null));
   } catch (error) {
     dispatch(setUser(null));
+  } finally {
+    dispatch(setAuthReady(true));
   }
 };

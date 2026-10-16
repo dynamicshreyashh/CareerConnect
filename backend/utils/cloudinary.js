@@ -1,21 +1,26 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Load correct backend .env file
-dotenv.config({ path: path.resolve("backend/.env") });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-// DEBUG LOG
-console.log("Cloudinary Loaded ENV:", {
-  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
-  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? "LOADED" : "MISSING"
-});
+const hasCloudinaryConfig = Boolean(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+if (hasCloudinaryConfig) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+}
 
+export const isCloudinaryConfigured = hasCloudinaryConfig;
 export default cloudinary;
